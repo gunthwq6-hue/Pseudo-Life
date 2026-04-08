@@ -1,1 +1,535 @@
+--!optimize 2
+--!native
 
+local Core = script.Parent
+
+local Pi = math.pi
+
+local current_time_passed_since_orgin = 0
+
+--Timestepping Controls, take usage with caution as these numbers determine time delaying in consumer systems 
+
+local t = 0 --Standard delay for wait functions, Adjusting this varible will affect the consumers script speed and thus, the enviornments  whol render speed and capability
+
+local t2 = .25 -- Standard where fast looping is not reliable, safe, or pratical 
+
+local t3 = .5 --Standard where fast looping will cause drastic consenquences
+
+--Timestepping end
+
+local PhysicsService = game:GetService("PhysicsService")
+local CORE_NO_COLLIDE = "CoreNoCollide"
+
+
+if not PhysicsService:IsCollisionGroupRegistered(CORE_NO_COLLIDE) then
+	PhysicsService:RegisterCollisionGroup(CORE_NO_COLLIDE)
+end
+
+
+PhysicsService:CollisionGroupSetCollidable(CORE_NO_COLLIDE, CORE_NO_COLLIDE, false)
+
+
+for _, part in ipairs(Core:GetDescendants()) do
+	if part:IsA("BasePart") then
+		PhysicsService:SetPartCollisionGroup(part, CORE_NO_COLLIDE)
+	end
+end
+
+Core.DescendantAdded:Connect(function(part)
+	if part:IsA("BasePart") then
+		PhysicsService:SetPartCollisionGroup(part, CORE_NO_COLLIDE)
+	end
+end)
+
+
+
+
+
+
+
+
+
+
+--Quick Information -- 
+--Sub-Project Piority : High
+-- Status on Local Build : Running and needs polishing and lacking 2 inner modules, the modules will be stated which are AutoAdjustingSpeedController, and nil 
+
+
+
+
+local StarterGui = game:GetService("StarterGui")
+
+local Filter = 200
+
+local Produced = false
+
+local PhysicsService = game:GetService("PhysicsService")
+
+local Group_A = "Consumers"
+
+local ProducedCount = 0
+
+local Nutrition = 300
+
+local ID = math.random(1,1e6)
+
+local Generation = Core.Generation
+
+local IntG = Generation.Value
+
+Core.Name = Generation.Value
+
+local ConsumerDistance = 20
+
+local HumanoidSpeed = Core.Humanoid.WalkSpeed
+
+HumanoidSpeed = math.random(16,62) + math.random(-12, 12)
+
+print(HumanoidSpeed, ID, "Speed")
+
+--Note | When printing statements in a function, always indicate the functions id. |
+
+-- Search and Destroy Sequence Module (SDSM) -- Rigid Function Structure for simulating gathering of food
+
+function Table_A()  --ID | 0A |--
+	--print("Calling 0A")
+	local Producers = workspace.Producer:GetChildren()
+	local Targets = {}
+
+	for i, v in ipairs(Producers) do
+		if v:IsA("BasePart") then
+			table.insert(Targets, v)
+		end
+	end
+	--print("Table search finished there are ,"  , #Targets, "that are possible to consume")
+	return Targets, #Targets
+end
+
+
+
+
+function GetPlantInfo() --ID | 1A-AUX-A |--
+	--print("Calling 1A-AUX-A")
+	local Group = Table_A()
+
+	local GroupPopulation = #Group
+
+	return Group, GroupPopulation
+
+end
+
+function Table_B() --ID | 1A |--
+
+	local Targets, localPopulation = Table_A()
+
+	local Polished = {}
+
+	for i,v in ipairs(Targets) do
+		local Distance = (Core.PrimaryPart.Position - v.Position).Magnitude
+
+		if Distance < Filter then
+			table.insert(Polished, v)
+
+		end
+	end
+	if #Polished == 0 then
+		Adjuster()
+		return
+	end
+	--print("Table Narrowed", #Polished)
+	return Polished
+end
+
+function Adjuster() --ID | 1A-AUX-B |--
+
+	local Table, Population = GetPlantInfo()
+
+	if Population < Filter then
+		Filter = math.abs(Filter - 6)
+	elseif Population > Filter then
+		Filter = Filter + 6
+	end
+
+
+	--print(Population)
+
+	return Filter
+end
+
+function getTargetfromRandom() --ID | 2A |--
+	--print("Calling 2A")
+	local Group = Table_B()
+	if not Group or #Group == 0 then
+		return nil
+	end
+
+
+	local randomIndex = math.random(1, #Group)
+
+	--print("Random Target Selected", DateTime.now())
+	return Group[randomIndex]
+end
+
+
+function Translate() --ID | 3A |--
+
+	local target = getTargetfromRandom()
+
+	if not target then
+		return
+	end
+
+
+
+
+	Core.Humanoid:MoveTo(target.Position)
+
+	--print(ID, "Has commenced movement to", target.Position, ID, "Has", Nutrition, "Stored", "Key : 3A-TRANSLATE")
+
+	Core.Humanoid.Touched:Connect(function(otherPart)
+
+		if otherPart.Name == "Plant" then
+			otherPart:Destroy()
+			Nutrition += .05
+			Gestation()
+
+			--print("TargetDestroyed")
+		end
+	end)
+
+
+	Core.Humanoid.MoveToFinished:Wait()
+end
+
+-- Search and Destroy Module End --
+
+--Relative Data -- | Functions Related to Consumers
+
+function GetConsumerPopulation()
+	local Consumers = workspace.Consumer:GetChildren()
+
+	local PopulationLibary = {}
+
+	local NumberofConsumers = nil
+
+	for i,v in ipairs(Consumers) do
+		if v:IsA("Model") then
+			table.insert(PopulationLibary, v)
+
+			NumberofConsumers = #PopulationLibary
+		end
+	end
+
+	return NumberofConsumers
+end
+
+function GetConsumerData()
+	local Consumers = workspace.Consumer:GetChildren()
+
+	local PopulationLibary = {}
+
+	local ConsumerData = nil
+
+	for i,v in ipairs(Consumers) do
+		if v:IsA("Model") then
+			table.insert(PopulationLibary, v)
+
+			ConsumerData = PopulationLibary
+		end
+	end
+
+	return ConsumerData
+end
+
+
+
+-- RD End
+--Deterministic Data -- Data used for general decisions
+
+function GetfiltiredConsumerDistancePool()
+	local Table1 = GetConsumerData()
+	
+	local Table2 = {}
+	
+	for i,v in ipairs(Table1) do
+		local Distance = (Core.PrimaryPart.Position.Magnitude) - (v.PrimaryPart.Position.Magnitude)
+		
+		if Distance < ConsumerDistance then
+			table.insert(Table2, v, Distance)
+		end
+	end
+	
+	return Table2
+end
+	
+
+function GetClosestConsumer() 
+	local Pool = GetfiltiredConsumerDistancePool()
+	
+	local Pool2 = table.sort(Pool)
+	
+	local First = nil
+	
+	for i,v in ipairs(Pool2) do
+		if i == 1  then
+			return v
+		end
+	end
+end
+
+function GetConsumerPoolWeight()
+	local Input = GetfiltiredConsumerDistancePool()
+	
+	local Weight = (Input / Pi) / #Input * 2
+	
+	return Weight
+end
+
+function GetConsumerClosestWeight()
+	local Input1, Input2 = GetClosestConsumer() GetConsumerPoolWeight()
+	
+	local Weight = Input1 * Input2
+	
+	return Weight
+end
+
+function GetConsuerPriorityFactor()
+	local Weight1 = GetConsumerPoolWeight()
+	
+	local Weight2 = GetConsumerClosestWeight()
+	
+	local Factor = (Weight1 * Weight2) / 2
+	
+	return Factor
+	
+end
+	
+	
+-- Internal Functions Simulation (IFS) -- Independent Components which attempt to simulate bioglocial and neruological functions; Dependent functions which only exucute when called by a other function.
+
+local limiter = true
+
+local NutrientUtiilzerEnabled = false
+
+function GetPopulationWeight()
+	local Population = GetConsumerPopulation()
+
+	local Weighted = math.sqrt(Population)
+
+	return Weighted
+end
+
+
+function Gestation()
+	if limiter == false  then
+		if Nutrition <= 100 and ConsumerPopulation > 500 then end
+
+		local clone = Core:Clone()
+
+		clone.Parent = workspace.Consumer
+
+		clone.Name = "Consumer" .. tostring(math.random(2, 1e6))
+
+		clone.Generation.Value += 1
+
+		clone.Name = Generation.Value
+
+		Nutrition -= 50
+
+		limiter = true
+
+		ProducedCount += 1
+	end
+
+
+
+
+end
+
+
+
+function Starvation()
+	local Nuts = Nutrition
+	
+	print(Nuts, ID, current_time_passed_since_orgin, HumanoidSpeed, "Starvation")
+
+	Core:Destroy()
+end
+
+
+
+local function AutoCheckforStarvationorMalnourhisment()
+	
+	while true do
+		local Nuts = Nutrition
+
+		if Nuts < 10 then
+			Starvation()
+			
+		end
+		task.wait(t3)	
+	end
+end
+
+
+	
+local ConsumptionRate = nil
+
+function NutrientUtilizer() -- NUT -- -- If you need to change the effiency of the consumer, come here
+	local efficency1, efficency2 = 1.8, 3.2
+
+	local baseModifer = math.random(efficency1, efficency2) 
+	while true do
+		--Take note that X determines the difficulty, probability of continuous consumer growth
+		local X = 800 -- Consumption Rate Factor; The higher X, the more efficent the consumer spends nutrition. X should be around 600 and higher, values lower then 600 can cause impossiblity for con-plant interaction. 
+		
+		local Speed1 = Core.Humanoid.WalkSpeed
+        
+		local SpeedModifer = math.sqrt(Speed1 / baseModifer) * math.random(1000, 2000) / 1000 
+ 
+		 ConsumptionRate = math.abs(Nutrition * SpeedModifer ) / (X - (baseModifer / 2)) -- 
+
+		Nutrition -= ConsumptionRate 
+
+
+        print(ConsumptionRate, Nutrition, ID)
+		task.wait(t3) -- Affection of timestepping affects overall consumption as in rate of operations.	
+	end
+end
+
+
+-- IFS end
+
+--Master Functions-- Master functions act as loop drivers for crtical systems to run and other purposes for general purpose and function
+
+
+	
+
+local function SequencerModule() -- ID |1M-SEARCH_AND_DESTROY-MASTER|
+	while true do
+		
+		
+		
+		Translate()
+		
+          
+		task.wait(t2)
+	end
+end
+
+local function GestationLimitingDriver() --Dynamic delay; Do not set any wait functions to t
+	local DriveLimiter = math.random(15,60)
+
+	while true do
+
+
+		local Weight = GetPopulationWeight()
+
+		local Weight2 = math.sqrt(Weight) / 4
+        
+		task.wait((DriveLimiter + Weight2 ))
+
+		limiter = false
+
+		--print( "Gestation wait time for", Core.Name, ":",DriveLimiter + Weight2, "|", "Base limiter  :", DriveLimiter, "Key : GLD0X")
+	end
+end
+
+local function AutoUpdateConsumerPopulation()
+	while true do
+		ConsumerPopulation = GetConsumerPopulation()
+
+		task.wait(.8)
+
+	end
+end
+
+
+
+local function Lifespan() --Dynamic delay; Do not set any wait functions to t
+	local Weight = GetPopulationWeight()
+
+
+
+	local WeightAdjuster = math.sqrt(Weight / 10)
+
+	local Lifespan = math.abs(math.random(46, 100) - WeightAdjuster)
+
+	task.wait(Lifespan)
+
+
+
+	Core:Destroy()
+
+
+end
+
+local function DataRecordandLogSystem()
+	local TimefromGenesis = nil 
+
+	local CurrentAge = nil
+
+	local TimeRefrencePoint = DateTime.now()
+
+	while true do
+
+	end
+end
+
+
+local function TimeRecordSystem ()
+	local Function_Frequency = 1
+
+	while true do
+		current_time_passed_since_orgin += 1
+
+		--Core.Name = current_time_passed_since_orgin
+
+		task.wait(Function_Frequency)
+	end
+
+end	
+
+local function getDecisionNetworkInfo()
+	while true do
+		local Factor = GetConsuerPriorityFactor()
+		
+		print(Factor, "Factors", ID)
+		task.wait(t2)
+	end
+end
+
+
+--Master Functions and general system info-- Master Functions run the whole controller by constantly calling the primary function of a sequenced structure
+
+
+
+task.spawn(SequencerModule) -- Piority(1-Critical)
+
+task.wait()	
+
+task.spawn(NutrientUtilizer)
+
+task.wait()	
+
+task.spawn(GestationLimitingDriver)
+
+task.wait()	
+
+task.spawn(Lifespan)
+
+task.wait()	
+
+task.spawn(AutoUpdateConsumerPopulation)
+
+task.wait()	
+
+task.spawn(AutoCheckforStarvationorMalnourhisment)
+
+task.wait()
+
+task.spawn(TimeRecordSystem)
+
+task.wait()
+
+--task.spawn(getDecisionNetworkInfo) -- Not in intended function at the moment
