@@ -47,16 +47,6 @@ end)
 
 
 
-
-
-
---Quick Information -- 
---Sub-Project Piority : High
--- Status on Local Build : Running and needs polishing and lacking 2 inner modules, the modules will be stated which are AutoAdjustingSpeedController, and nil 
-
-
-
-
 local StarterGui = game:GetService("StarterGui")
 
 local Filter = 200
@@ -87,9 +77,9 @@ HumanoidSpeed = math.random(16,62) + math.random(-12, 12)
 
 print(HumanoidSpeed, ID, "Speed")
 
---Note | When printing statements in a function, always indicate the functions id. |
 
--- Search and Destroy Sequence Module (SDSM) -- Rigid Function Structure for simulating gathering of food
+
+
 
 function Table_A()  --ID | 0A |--
 	--print("Calling 0A")
