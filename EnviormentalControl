@@ -1,1 +1,165 @@
 
+local ParentGroup = workspace.Producer
+
+
+
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local ServerStorage = game:GetService("ServerStorage")
+
+local ChildGroup = ParentGroup:GetChildren()
+
+local AbsouluteStop = false
+
+local S = 1300
+
+local DataBank = script:FindFirstChild("GetPopulationData")
+
+local Center = workspace.Center.Position
+
+local CEG = script.CallEnviormentalGenesis
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local SCC = ReplicatedStorage.SpawnConsumerfromClient
+
+local Lowpopulationthreshold = 20
+
+local ExcessPopulation = 12
+
+local StarterGui = game:GetService("StarterGui")
+--Functions--
+
+function NoCollisions()
+	for i, v in ipairs(ChildGroup) do
+		if v:IsA("BasePart") then
+			v.CanCollide = false
+		end
+	end
+end
+
+function getconsumerPopulationData()
+	local Population = #workspace.Consumer:GetChildren()
+	
+	
+	return Population
+end
+
+function requestEnviormentalGenesis()
+	if getconsumerPopulationData() > ExcessPopulation then return false
+		
+	elseif getconsumerPopulationData() < ExcessPopulation then return true	
+	end
+	
+end
+
+function GetPlantData()
+	local Population = #ParentGroup:GetChildren()
+	
+	return Population
+end
+	
+
+function SetColor()
+	for i, v in ipairs(ChildGroup) do
+		if v:IsA("BasePart") then
+			v.BrickColor = BrickColor.Green()
+		end
+	end
+end
+
+function AllignAllParts()
+	for i,v in ipairs(ChildGroup) do
+		if v:IsA("BasePart") then
+          
+		end
+	end
+end
+
+function Create()
+	local Plant = ServerStorage.PlaceHolders.Plant:Clone()
+	
+	
+	
+	Plant.Position = Center + Vector3.new(math.random(-S, S), Plant.Size.Y / 2, math.random(-S, S)) 
+	
+	Plant.Parent = workspace.Producer
+	
+	
+	
+end
+
+
+
+--Settings  ()-- 
+
+--NoCollisions()
+
+--SetColor()
+
+
+
+--Auto-Scheduling--
+
+
+
+task.spawn(function()
+	while true  do
+		local Consumers = workspace.Consumer:GetChildren()
+
+		local ConsumerPopulation = #Consumers
+
+		local PopulationModifer = 3
+
+		local IterationCountforGestation = (math.round(math.abs(math.random(64, 1512) - (ConsumerPopulation * PopulationModifer)))) / 160
+
+		local ChildGroup = ParentGroup:GetChildren()
+
+		local Frequency = .1
+		
+		
+		
+        local GenLimit = 5000 - (ConsumerPopulation * PopulationModifer)
+		if #ChildGroup < GenLimit then
+			for i = 1, IterationCountforGestation do
+				
+				Create()
+				
+				
+			end
+		end
+
+
+
+
+		print(#Consumers, "Consumer Population", "|", "Plants in simulation:", #ChildGroup, "|","Plant Generation Limit", GenLimit,  "|", Frequency, "Key : META")
+		task.wait(Frequency)
+
+
+	end
+end)
+
+task.spawn(function()
+	while true do
+	if not requestEnviormentalGenesis() then warn(" Pseudo Abiogenesis Limit has been exceeded ") return end
+		
+		
+	CEG:Fire()
+		
+		
+		
+		
+	task.wait(3)
+	end
+end)
+
+SCC.Event:Connect(function()
+	CEG:Fire()
+	
+	print("Client Communcation success")
+end)
+
+
+
+
+--Consumer Start up section
