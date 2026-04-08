@@ -1,0 +1,58 @@
+local ConsumerGroup = workspace.Consumer
+
+local ServerStorage = game:GetService("ServerStorage")
+
+local Placeholder = ServerStorage.PlaceHolders
+
+local Model = Placeholder.Consumer
+
+
+local Center = workspace.Center.Position
+
+local S = 1300
+
+local CEG = script.Parent.CallEnviormentalGenesis
+
+local FeedbackModule = script.Parent.GetPopulationData
+
+local RootConsumerTable = {}
+--function SendDatatoParent(Data)
+	
+--end
+
+local function EnviormentalGenesis()
+	
+	local OFfset = 16.1 / 5.25
+   
+	local SpawnTarget = Center + Vector3.new(math.random(-S, S),0,math.random(-S,S))
+
+    local newColor = BrickColor.random()
+    
+	local Clone = Model:Clone()
+	
+	local Array = Clone:GetDescendants()
+	
+	for i,v in ipairs(Array) do
+		if v:IsA("BasePart") then
+			v.BrickColor = newColor
+		end
+	end
+
+	table.insert(RootConsumerTable, Clone)
+    --SendDatatoParent(RootConsumerTable)
+	
+	Clone.Parent = workspace.Consumer
+	
+	Clone:MoveTo(SpawnTarget)
+	
+	print("Root Consumer added")
+
+end
+
+
+
+CEG.Event:Connect(function()
+	for i = 1, 6, 1 do
+		EnviormentalGenesis()
+	end
+end)
